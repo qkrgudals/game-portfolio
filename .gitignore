@@ -1,0 +1,32 @@
+
+# Node.js / React
+node_modules/
+dist/
+.vite/
+
+# Java / Gradle
+.gradle/
+build/
+out/
+*.class
+
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# Environment variables / Secrets
+.env
+.env.*
+!.env.example
+application-local.properties
+application-secret.properties
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
