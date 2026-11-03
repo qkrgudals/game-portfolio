@@ -15,6 +15,7 @@ function Login({ onLoginSuccess, onSignupClick }) {
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
+        credentials: "same-origin",
         headers: {
           "Content-Type": "application/json",
         },

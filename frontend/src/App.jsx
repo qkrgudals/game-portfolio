@@ -4,6 +4,9 @@ import "./App.css";
 
 import Login from "./components/Login";
 import Signup from "./components/Signup";
+import ProjectList from "./components/ProjectList";
+import ProjectDetail from "./components/ProjectDetail";
+import MyPage from "./components/MyPage";
 
 function App() {
   // Spring Boot API 연결 상태
@@ -12,8 +15,17 @@ function App() {
   // 현재 페이지
   const [page, setPage] = useState("home");
 
-  // 로그인 사용자 정보 (임시 UI 상태)
+  // 로그인 사용자 정보
   const [user, setUser] = useState(null);
+
+  // 로그인 상태 확인 중인지 여부
+  const [authLoading, setAuthLoading] = useState(true);
+
+  // 로그아웃 처리 중인지 여부
+  const [logoutLoading, setLogoutLoading] = useState(false);
+
+  // 선택한 프로젝트 ID
+  const [selectedProjectId, setSelectedProjectId] = useState(null);
 
   // Spring Boot API 연결 테스트
   useEffect(() => {
@@ -33,21 +45,111 @@ function App() {
       });
   }, []);
 
+  // 새로고침 후 로그인 상태 복원
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const checkLoginStatus = async () => {
+      try {
+        const response = await fetch("/api/users/me", {
+          credentials: "same-origin",
+          signal: controller.signal,
+        });
+
+        if (response.status === 401) {
+          setUser(null);
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error("로그인 상태 확인 실패");
+        }
+
+        const data = await response.json();
+
+        setUser(data);
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          console.error(error);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setAuthLoading(false);
+        }
+      }
+    };
+
+    checkLoginStatus();
+
+    return () => controller.abort();
+  }, []);
+
   // 로그인 성공
   const handleLoginSuccess = (data) => {
     setUser(data);
     setPage("home");
   };
 
-  // 로그아웃 (화면 상태만 초기화)
-  const handleLogout = () => {
+  // 로그아웃 (서버 세션 + React 상태 초기화)
+  const handleLogout = async () => {
+    if (logoutLoading) return;
+
+    setLogoutLoading(true);
+
+    try {
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "same-origin",
+      });
+
+      if (!response.ok) {
+        throw new Error("로그아웃 실패");
+      }
+
+      setUser(null);
+      setPage("home");
+    } catch (error) {
+      console.error(error);
+      alert("로그아웃에 실패했습니다. 다시 시도해주세요.");
+    } finally {
+      setLogoutLoading(false);
+    }
+  };
+
+  // 회원탈퇴 성공
+  const handleDeleteSuccess = () => {
+    // UserController에서 회원 삭제 및 세션 종료 완료
     setUser(null);
+    setSelectedProjectId(null);
     setPage("home");
+
+    alert("회원탈퇴가 완료되었습니다.");
   };
 
   // 홈으로 이동
   const goHome = () => {
     setPage("home");
+  };
+
+  // 프로젝트 목록으로 이동
+  const goProjects = () => {
+    setPage("projects");
+  };
+
+  // 프로젝트 상세 보기
+  const handleSelectProject = (id) => {
+    setSelectedProjectId(id);
+    setPage("projectDetail");
+  };
+
+  // 마이페이지 이동
+  const goMyPage = () => {
+    if (!user) {
+      setPage("login");
+      return;
+    }
+
+    setPage("mypage");
   };
 
   // 게임 소개 또는 랭킹으로 이동
@@ -78,7 +180,10 @@ function App() {
         <nav>
           <a
             href="#home"
-            onClick={goHome}
+            onClick={(e) => {
+              e.preventDefault();
+              goHome();
+            }}
           >
             홈
           </a>
@@ -94,6 +199,16 @@ function App() {
           </a>
 
           <a
+            href="#projects"
+            onClick={(e) => {
+              e.preventDefault();
+              goProjects();
+            }}
+          >
+            프로젝트
+          </a>
+
+          <a
             href="#ranking"
             onClick={(e) => {
               e.preventDefault();
@@ -104,17 +219,27 @@ function App() {
           </a>
         </nav>
 
-        {/* 로그인 / 회원가입 메뉴 */}
+        {/* 로그인 / 회원가입 / 마이페이지 메뉴 */}
         <div className="auth-menu">
-          {user ? (
+          {authLoading ? (
+            <span>로그인 확인 중...</span>
+          ) : user ? (
             <>
               <span>{user.username}님</span>
 
               <button
                 type="button"
-                onClick={handleLogout}
+                onClick={goMyPage}
               >
-                로그아웃
+                마이페이지
+              </button>
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                disabled={logoutLoading}
+              >
+                {logoutLoading ? "로그아웃 중..." : "로그아웃"}
               </button>
             </>
           ) : (
@@ -138,23 +263,68 @@ function App() {
       </header>
 
       {/* 페이지별 화면 표시 */}
-      {page === "login" ? (
+
+      {/* 로그인 페이지 */}
+      {page === "login" && (
         <main>
           <Login
             onLoginSuccess={handleLoginSuccess}
             onSignupClick={() => setPage("signup")}
           />
         </main>
-      ) : page === "signup" ? (
+      )}
+
+      {/* 회원가입 페이지 */}
+      {page === "signup" && (
         <main>
           <Signup
             onSuccess={() => setPage("login")}
             onLoginClick={() => setPage("login")}
           />
         </main>
-      ) : (
+      )}
+
+      {/* 프로젝트 목록 페이지 */}
+      {page === "projects" && (
+        <main>
+          <ProjectList
+            onSelectProject={handleSelectProject}
+          />
+        </main>
+      )}
+
+      {/* 프로젝트 상세 페이지 */}
+      {page === "projectDetail" && (
+        <ProjectDetail
+          projectId={selectedProjectId}
+          onBack={goProjects}
+        />
+      )}
+
+      {/* 마이페이지 + 회원탈퇴 */}
+      {page === "mypage" && (
+        user ? (
+          <MyPage
+            onBack={goHome}
+            onDeleteSuccess={handleDeleteSuccess}
+          />
+        ) : (
+          <main className="section">
+            <p>로그인이 필요합니다.</p>
+
+            <button
+              type="button"
+              onClick={() => setPage("login")}
+            >
+              로그인하기
+            </button>
+          </main>
+        )
+      )}
+
+      {/* 기존 홈페이지 */}
+      {page === "home" && (
         <>
-          {/* 기존 홈페이지 */}
           <main id="home" className="hero">
             <h1>GAME PORTFOLIO</h1>
 
