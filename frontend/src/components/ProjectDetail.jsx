@@ -90,8 +90,10 @@ function ProjectDetail({ projectId, onBack }) {
         <p>{project.techStack}</p>
       </div>
 
-      {/* GitHub 링크 */}
+      {/* 버튼 영역 */}
       <div className="detail-buttons">
+
+        {/* GitHub 링크 */}
         {project.githubUrl && (
           <a
             href={project.githubUrl}
@@ -103,17 +105,18 @@ function ProjectDetail({ projectId, onBack }) {
           </a>
         )}
 
-        {/* Unity WebGL 게임 실행 */}
+        {/* Unity PC 게임 다운로드 */}
         {project.gameUrl && (
-          <button
-            type="button"
-            disabled
-            title="Unity WebGL 연결 후 활성화됩니다."
+          <a
+            href="/downloads/MyGame-v1.0.0-Windows.zip"
+            download
+            className="detail-button game-download-btn"
           >
-            게임 플레이 (준비 중)
-          </button>
+            Windows 게임 다운로드
+          </a>
         )}
 
+        {/* 프로젝트 목록으로 */}
         <button type="button" onClick={onBack}>
           프로젝트 목록으로
         </button>

@@ -30,3 +30,5 @@ application-secret.properties
 # OS files
 .DS_Store
 Thumbs.db
+# Unity PC 게임 빌드 파일
+/frontend/public/downloads/*.zip

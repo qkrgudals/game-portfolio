@@ -482,3 +482,19 @@ nav a {
   background: #101522;
   color: white;
 }
+
+/* Windows 게임 다운로드 버튼 */
+.game-download-btn {
+  display: inline-block;
+  padding: 12px 24px;
+  background-color: #2563eb;
+  color: #ffffff;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.game-download-btn:hover {
+  background-color: #1d4ed8;
+}
