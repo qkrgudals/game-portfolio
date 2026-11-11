@@ -13,4 +13,7 @@ public interface GameRecordRepository
 
     // 특정 스테이지의 게임 기록 조회 (클리어 시간 빠른 순)
     List<GameRecord> findByStageOrderByClearTimeAsc(Integer stage);
+
+    // 전체 기록 조회 (스테이지 높은 순, 클리어 시간 빠른 순)
+    List<GameRecord> findAllByOrderByStageDescClearTimeAsc();
 }

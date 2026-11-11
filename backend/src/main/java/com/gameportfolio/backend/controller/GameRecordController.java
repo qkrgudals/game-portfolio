@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.gameportfolio.backend.dto.RankingResponse;
 
 import java.util.List;
 import java.util.Map;
@@ -88,5 +89,14 @@ public class GameRecordController {
             return ResponseEntity.badRequest()
                     .body(Map.of("message", e.getMessage()));
         }
+    }
+
+    // 전체 사용자 랭킹 조회
+    @GetMapping("/ranking")
+    public ResponseEntity<List<RankingResponse>> getRanking() {
+
+        List<RankingResponse> ranking = gameRecordService.getRanking();
+
+        return ResponseEntity.ok(ranking);
     }
 }

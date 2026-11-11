@@ -4,30 +4,21 @@ import "./App.css";
 
 import Login from "./components/Login";
 import Signup from "./components/Signup";
-import ProjectList from "./components/ProjectList";
-import ProjectDetail from "./components/ProjectDetail";
 import MyPage from "./components/MyPage";
 
 function App() {
-  // Spring Boot API 연결 상태
   const [apiMessage, setApiMessage] = useState("연결 확인 중...");
-
-  // 현재 페이지
   const [page, setPage] = useState("home");
-
-  // 로그인 사용자 정보
   const [user, setUser] = useState(null);
-
-  // 로그인 상태 확인 중인지 여부
   const [authLoading, setAuthLoading] = useState(true);
-
-  // 로그아웃 처리 중인지 여부
   const [logoutLoading, setLogoutLoading] = useState(false);
 
-  // 선택한 프로젝트 ID
-  const [selectedProjectId, setSelectedProjectId] = useState(null);
+  // 랭킹 상태
+  const [rankings, setRankings] = useState([]);
+  const [rankingLoading, setRankingLoading] = useState(false);
+  const [rankingError, setRankingError] = useState("");
 
-  // Spring Boot API 연결 테스트
+  // Spring Boot 연결 확인
   useEffect(() => {
     fetch("/api/test")
       .then((response) => {
@@ -36,16 +27,14 @@ function App() {
         }
         return response.text();
       })
-      .then((data) => {
-        setApiMessage(data);
-      })
+      .then(setApiMessage)
       .catch((error) => {
         console.error(error);
         setApiMessage("Spring Boot 연결 실패");
       });
   }, []);
 
-  // 새로고침 후 로그인 상태 복원
+  // 로그인 상태 복원
   useEffect(() => {
     const controller = new AbortController();
 
@@ -66,7 +55,6 @@ function App() {
         }
 
         const data = await response.json();
-
         setUser(data);
       } catch (error) {
         if (error.name !== "AbortError") {
@@ -84,13 +72,57 @@ function App() {
     return () => controller.abort();
   }, []);
 
+  // 랭킹 페이지에 들어가면 최신 기록 조회
+  useEffect(() => {
+    if (page !== "ranking") return;
+
+    const controller = new AbortController();
+
+    const fetchRankings = async () => {
+      setRankingLoading(true);
+      setRankingError("");
+
+      try {
+        const response = await fetch("/api/records/ranking", {
+          credentials: "same-origin",
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error("랭킹 조회에 실패했습니다.");
+        }
+
+        const data = await response.json();
+
+        if (!Array.isArray(data)) {
+          throw new Error("올바르지 않은 랭킹 데이터입니다.");
+        }
+
+        setRankings(data);
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          console.error(error);
+          setRankingError(error.message);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setRankingLoading(false);
+        }
+      }
+    };
+
+    fetchRankings();
+
+    return () => controller.abort();
+  }, [page]);
+
   // 로그인 성공
   const handleLoginSuccess = (data) => {
     setUser(data);
     setPage("home");
   };
 
-  // 로그아웃 (서버 세션 + React 상태 초기화)
+  // 로그아웃
   const handleLogout = async () => {
     if (logoutLoading) return;
 
@@ -110,7 +142,7 @@ function App() {
       setPage("home");
     } catch (error) {
       console.error(error);
-      alert("로그아웃에 실패했습니다. 다시 시도해주세요.");
+      alert("로그아웃에 실패했습니다.");
     } finally {
       setLogoutLoading(false);
     }
@@ -118,28 +150,9 @@ function App() {
 
   // 회원탈퇴 성공
   const handleDeleteSuccess = () => {
-    // UserController에서 회원 삭제 및 세션 종료 완료
     setUser(null);
-    setSelectedProjectId(null);
     setPage("home");
-
     alert("회원탈퇴가 완료되었습니다.");
-  };
-
-  // 홈으로 이동
-  const goHome = () => {
-    setPage("home");
-  };
-
-  // 프로젝트 목록으로 이동
-  const goProjects = () => {
-    setPage("projects");
-  };
-
-  // 프로젝트 상세 보기
-  const handleSelectProject = (id) => {
-    setSelectedProjectId(id);
-    setPage("projectDetail");
   };
 
   // 마이페이지 이동
@@ -152,26 +165,24 @@ function App() {
     setPage("mypage");
   };
 
-  // 게임 소개 또는 랭킹으로 이동
-  const goToSection = (sectionId) => {
-    setPage("home");
+  // PC 게임 다운로드
+  const handleGameDownload = () => {
+    const link = document.createElement("a");
 
-    // React가 홈 화면을 표시한 뒤 이동
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        document
-          .getElementById(sectionId)
-          ?.scrollIntoView({ behavior: "smooth" });
-      });
-    });
+    link.href = "/downloads/MyGame-v1.0.0-Windows.zip";
+    link.download = "MyGame-v1.0.0-Windows.zip";
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
     <div className="app">
-      {/* 헤더 */}
+      {/* 상단 메뉴 */}
       <header className="header">
         <h2
-          onClick={goHome}
+          onClick={() => setPage("home")}
           style={{ cursor: "pointer" }}
         >
           GAME PORTFOLIO
@@ -182,7 +193,7 @@ function App() {
             href="#home"
             onClick={(e) => {
               e.preventDefault();
-              goHome();
+              setPage("home");
             }}
           >
             홈
@@ -192,34 +203,23 @@ function App() {
             href="#games"
             onClick={(e) => {
               e.preventDefault();
-              goToSection("games");
+              setPage("games");
             }}
           >
             게임 소개
           </a>
 
           <a
-            href="#projects"
-            onClick={(e) => {
-              e.preventDefault();
-              goProjects();
-            }}
-          >
-            프로젝트
-          </a>
-
-          <a
             href="#ranking"
             onClick={(e) => {
               e.preventDefault();
-              goToSection("ranking");
+              setPage("ranking");
             }}
           >
             랭킹
           </a>
         </nav>
 
-        {/* 로그인 / 회원가입 / 마이페이지 메뉴 */}
         <div className="auth-menu">
           {authLoading ? (
             <span>로그인 확인 중...</span>
@@ -227,10 +227,7 @@ function App() {
             <>
               <span>{user.username}님</span>
 
-              <button
-                type="button"
-                onClick={goMyPage}
-              >
+              <button type="button" onClick={goMyPage}>
                 마이페이지
               </button>
 
@@ -262,11 +259,174 @@ function App() {
         </div>
       </header>
 
-      {/* 페이지별 화면 표시 */}
+      {/* 홈 화면 */}
+      {page === "home" && (
+        <main className="home-page">
+          <section className="game-hero">
+            <div className="game-icon">🎮</div>
 
-      {/* 로그인 페이지 */}
+            <h1>UNITY GAME</h1>
+
+            <p>
+              PC에서 즐기는 오펜스 + 디펜스
+              스테이지 게임
+            </p>
+
+            <button
+              type="button"
+              className="download-button"
+              onClick={handleGameDownload}
+            >
+              ↓ 게임 다운로드 (PC)
+            </button>
+          </section>
+
+          <div className="home-cards">
+            <div
+              className="home-card"
+              onClick={() => setPage("ranking")}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setPage("ranking");
+                }
+              }}
+            >
+              <div className="card-icon">🏆</div>
+              <h3>실시간 랭킹</h3>
+              <p>최고 클리어 스테이지 순위 확인</p>
+            </div>
+
+            <div
+              className="home-card"
+              onClick={goMyPage}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  goMyPage();
+                }
+              }}
+            >
+              <div className="card-icon">👤</div>
+              <h3>마이페이지</h3>
+              <p>내 플레이 기록 확인</p>
+            </div>
+          </div>
+        </main>
+      )}
+
+      {/* 게임 소개 */}
+      {page === "games" && (
+        <main className="game-page">
+          <section className="game-intro">
+            <div className="game-preview">
+              <img
+                src="/images/unity-game.png"
+                alt="Unity 오펜스 디펜스 게임 플레이 화면"
+                className="game-preview-image"
+              />
+            </div>
+
+            <div className="game-info">
+              <h1>오펜스 + 디펜스 게임</h1>
+
+              <div className="game-tags">
+                <span>Unity 3D</span>
+                <span>C#</span>
+                <span>PC</span>
+              </div>
+
+              <p>
+                직접 조작하는 캐릭터와 자동으로
+                전투하는 유닛을 이용해 적의 공격을
+                막고, 적의 본진을 공략하는
+                스테이지 기반 전략 게임입니다.
+              </p>
+
+              <button
+                type="button"
+                className="download-button"
+                onClick={handleGameDownload}
+              >
+                ↓ 게임 다운로드 (PC)
+              </button>
+            </div>
+          </section>
+        </main>
+      )}
+
+      {/* 랭킹 */}
+      {page === "ranking" && (
+        <main className="ranking-page">
+          <section className="ranking-container">
+            <div className="ranking-icon">🏆</div>
+
+            <h1>실시간 랭킹</h1>
+
+            <p>
+              최고 클리어 스테이지 기준 순위입니다.
+              같은 스테이지라면 클리어 시간이 짧은 순서입니다.
+            </p>
+
+            {rankingLoading ? (
+              <p>랭킹을 불러오는 중...</p>
+            ) : rankingError ? (
+              <p role="alert">{rankingError}</p>
+            ) : (
+              <table className="ranking-table">
+                <thead>
+                  <tr>
+                    <th>순위</th>
+                    <th>닉네임</th>
+                    <th>최고 스테이지</th>
+                    <th>클리어 시간</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {rankings.length === 0 ? (
+                    <tr>
+                      <td colSpan={4}>
+                        아직 등록된 게임 기록이 없습니다.
+                      </td>
+                    </tr>
+                  ) : (
+                    rankings.map((ranking) => (
+                      <tr key={ranking.rank}>
+                        <td>
+                          {ranking.rank === 1
+                            ? "🥇"
+                            : ranking.rank === 2
+                            ? "🥈"
+                            : ranking.rank === 3
+                            ? "🥉"
+                            : `${ranking.rank}위`}
+                        </td>
+
+                        <td>{ranking.username}</td>
+
+                        <td>Stage {ranking.stage}</td>
+
+                        <td>
+                          {Number(ranking.clearTime).toFixed(2)}초
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            )}
+          </section>
+        </main>
+      )}
+
+      {/* 로그인 */}
       {page === "login" && (
-        <main>
+        <main className="auth-page">
           <Login
             onLoginSuccess={handleLoginSuccess}
             onSignupClick={() => setPage("signup")}
@@ -274,9 +434,9 @@ function App() {
         </main>
       )}
 
-      {/* 회원가입 페이지 */}
+      {/* 회원가입 */}
       {page === "signup" && (
-        <main>
+        <main className="auth-page">
           <Signup
             onSuccess={() => setPage("login")}
             onLoginClick={() => setPage("login")}
@@ -284,34 +444,18 @@ function App() {
         </main>
       )}
 
-      {/* 프로젝트 목록 페이지 */}
-      {page === "projects" && (
-        <main>
-          <ProjectList
-            onSelectProject={handleSelectProject}
-          />
-        </main>
-      )}
-
-      {/* 프로젝트 상세 페이지 */}
-      {page === "projectDetail" && (
-        <ProjectDetail
-          projectId={selectedProjectId}
-          onBack={goProjects}
-        />
-      )}
-
-      {/* 마이페이지 + 회원탈퇴 */}
+      {/* 마이페이지 */}
       {page === "mypage" && (
         user ? (
-          <MyPage
-            onBack={goHome}
-            onDeleteSuccess={handleDeleteSuccess}
-          />
+          <main className="mypage-page">
+            <MyPage
+              onBack={() => setPage("home")}
+              onDeleteSuccess={handleDeleteSuccess}
+            />
+          </main>
         ) : (
           <main className="section">
             <p>로그인이 필요합니다.</p>
-
             <button
               type="button"
               onClick={() => setPage("login")}
@@ -320,45 +464,6 @@ function App() {
             </button>
           </main>
         )
-      )}
-
-      {/* 기존 홈페이지 */}
-      {page === "home" && (
-        <>
-          <main id="home" className="hero">
-            <h1>GAME PORTFOLIO</h1>
-
-            <p>
-              Unity 게임과 웹 서비스를 연결하는
-              풀스택 게임 포트폴리오
-            </p>
-
-            <button
-              type="button"
-              onClick={() => goToSection("games")}
-            >
-              게임 살펴보기
-            </button>
-          </main>
-
-          {/* 게임 소개 */}
-          <section id="games" className="section">
-            <h2>MY GAMES</h2>
-            <p>개발한 Unity 게임을 소개할 예정입니다.</p>
-          </section>
-
-          {/* 랭킹 */}
-          <section id="ranking" className="section">
-            <h2>RANKING</h2>
-            <p>게임 플레이 기록과 랭킹을 표시할 예정입니다.</p>
-          </section>
-
-          {/* Spring Boot API 연결 테스트 */}
-          <section className="section">
-            <h2>BACKEND CONNECTION</h2>
-            <p>{apiMessage}</p>
-          </section>
-        </>
       )}
     </div>
   );

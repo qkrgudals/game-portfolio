@@ -498,3 +498,364 @@ nav a {
 .game-download-btn:hover {
   background-color: #1d4ed8;
 }
+
+
+/* =========================
+   DAY 5 - 공통 화면 디자인
+========================= */
+
+body {
+  margin: 0;
+  background: #0b1020;
+  color: #ffffff;
+}
+
+.app {
+  min-height: 100vh;
+  background: #0b1020;
+}
+
+/* =========================
+   홈 화면
+========================= */
+
+.home-page {
+  max-width: 1200px;
+  margin: 30px auto;
+  padding: 0 24px;
+}
+
+.game-hero {
+  min-height: 340px;
+  padding: 50px 24px;
+  border-radius: 20px;
+  background:
+    linear-gradient(
+      135deg,
+      #172c4e,
+      #253b61,
+      #14233c
+    );
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.game-icon {
+  font-size: 52px;
+  margin-bottom: 15px;
+}
+
+.game-hero h1 {
+  font-size: 36px;
+  margin: 10px 0;
+  color: white;
+}
+
+.game-hero p {
+  color: #dbeafe;
+  font-size: 16px;
+  margin-bottom: 24px;
+}
+
+.download-button {
+  background: #2789ed;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 16px 28px;
+  font-size: 17px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.download-button:hover {
+  background: #1672d1;
+}
+
+/* 홈 하단 카드 */
+
+.home-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.home-card {
+  background: #192438;
+  border-radius: 16px;
+  padding: 26px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.home-card:hover {
+  background: #243653;
+  transform: translateY(-3px);
+}
+
+.home-card:focus-visible {
+  outline: 2px solid #58a6ff;
+  outline-offset: 3px;
+}
+
+.card-icon {
+  font-size: 30px;
+  margin-bottom: 12px;
+}
+
+.home-card h3 {
+  color: white;
+  font-size: 20px;
+  margin: 0 0 8px;
+}
+
+.home-card p {
+  color: #aebed4;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* =========================
+   게임 소개 화면
+========================= */
+
+.game-page {
+  max-width: 1200px;
+  margin: 30px auto;
+  padding: 0 24px;
+}
+
+.game-intro {
+  background: #172237;
+  border-radius: 20px;
+  padding: 36px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  align-items: center;
+}
+
+.game-preview {
+  min-height: 280px;
+  border-radius: 14px;
+  background: #263a58;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.game-preview span {
+  font-size: 60px;
+}
+
+.game-preview p {
+  color: #b8c7dd;
+}
+
+.game-info h1 {
+  color: white;
+  font-size: 28px;
+  margin-bottom: 16px;
+}
+
+.game-info p {
+  color: #d0daea;
+  line-height: 1.9;
+  margin: 22px 0;
+}
+
+.game-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.game-tags span {
+  background: #243b5c;
+  color: #70bbff;
+  padding: 7px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+}
+
+/* =========================
+   랭킹 화면
+========================= */
+
+.ranking-page {
+  max-width: 900px;
+  margin: 30px auto;
+  padding: 0 24px;
+}
+
+.ranking-container {
+  background: #172237;
+  padding: 36px;
+  border-radius: 20px;
+  text-align: center;
+}
+
+.ranking-icon {
+  font-size: 45px;
+  margin-bottom: 12px;
+}
+
+.ranking-container h1 {
+  color: white;
+  font-size: 28px;
+}
+
+.ranking-container > p {
+  color: #aebed4;
+  margin-bottom: 28px;
+}
+
+.ranking-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+  overflow: hidden;
+}
+
+.ranking-table th {
+  background: #253650;
+  padding: 16px;
+  color: white;
+}
+
+.ranking-table td {
+  padding: 16px;
+  border-bottom: 1px solid #34445e;
+  color: #dbeafe;
+}
+
+/* =========================
+   모바일 반응형
+========================= */
+
+@media (max-width: 768px) {
+  .home-page,
+  .game-page,
+  .ranking-page {
+    padding: 0 14px;
+    margin-top: 20px;
+  }
+
+  .game-hero {
+    min-height: 300px;
+    padding: 35px 16px;
+  }
+
+  .game-hero h1 {
+    font-size: 28px;
+  }
+
+  .home-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .game-intro {
+    grid-template-columns: 1fr;
+    padding: 20px;
+  }
+
+  .game-info h1 {
+    font-size: 24px;
+  }
+
+  .ranking-container {
+    padding: 20px 12px;
+  }
+}
+
+.game-preview {
+  overflow: hidden;
+}
+
+.game-preview-image {
+  width: 100%;
+  height: 100%;
+  min-height: 280px;
+  object-fit: cover;
+  display: block;
+  border-radius: 14px;
+}
+
+/* 마이페이지 게임 기록 */
+
+.mypage-records {
+  margin-top: 28px;
+  padding: 26px;
+  background: #172237;
+  border-radius: 16px;
+  color: #ffffff;
+}
+
+.mypage-records > h3 {
+  margin: 0 0 20px;
+  color: #ffffff;
+}
+
+.record-summary {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.record-summary-card {
+  padding: 22px;
+  background: #253650;
+  border-radius: 12px;
+}
+
+.record-summary-card p {
+  margin: 0 0 12px;
+  color: #aebed4;
+  font-size: 14px;
+}
+
+.record-summary-card h3 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 26px;
+}
+
+.record-table-wrapper {
+  overflow-x: auto;
+}
+
+.record-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+}
+
+.record-table th {
+  padding: 14px;
+  background: #253650;
+  color: #ffffff;
+}
+
+.record-table td {
+  padding: 14px;
+  border-bottom: 1px solid #34445e;
+  color: #dbeafe;
+}
+
+@media (max-width: 600px) {
+  .mypage-records {
+    padding: 16px;
+  }
+
+  .record-summary {
+    grid-template-columns: 1fr;
+  }
+}
