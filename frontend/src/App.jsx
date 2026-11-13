@@ -167,14 +167,10 @@ function App() {
 
   // PC 게임 다운로드
   const handleGameDownload = () => {
-    const link = document.createElement("a");
+   const downloadUrl =
+      "https://drive.google.com/file/d/1OYPlhlJQuU7Nbn1cmS6wZjHKLkpRKIhV/view";
 
-    link.href = "/downloads/MyGame-v1.0.0-Windows.zip";
-    link.download = "MyGame-v1.0.0-Windows.zip";
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    window.open(downloadUrl, "_blank", "noopener,noreferrer");
   };
 
   return (
