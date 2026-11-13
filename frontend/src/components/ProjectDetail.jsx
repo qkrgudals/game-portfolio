@@ -108,8 +108,9 @@ function ProjectDetail({ projectId, onBack }) {
         {/* Unity PC 게임 다운로드 */}
         {project.gameUrl && (
           <a
-            href="/downloads/MyGame-v1.0.0-Windows.zip"
-            download
+            href="https://drive.google.com/file/d/1OYPlhlJQuU7Nbn1cmS6wZjHKLkpRKIhV/view"
+            target="_blank"
+            rel="noopener noreferrer"
             className="detail-button game-download-btn"
           >
             Windows 게임 다운로드
