@@ -3,6 +3,7 @@ package com.gameportfolio.backend.service;
 
 import com.gameportfolio.backend.dto.UserResponse;
 import com.gameportfolio.backend.entity.User;
+import com.gameportfolio.backend.exception.UserNotFoundException;
 import com.gameportfolio.backend.repository.UserRepository;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,7 +29,7 @@ public class UserService {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
+                        new UserNotFoundException(
                                 "회원을 찾을 수 없습니다."
                         )
                 );
@@ -50,18 +51,17 @@ public class UserService {
         // 로그인한 회원정보 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
+                        new UserNotFoundException(
                                 "회원을 찾을 수 없습니다."
                         )
                 );
 
-        // 입력한 비밀번호와 DB의 암호화된 비밀번호 비교
+        // 비밀번호 검증
         boolean passwordMatches = passwordEncoder.matches(
                 password,
                 user.getPassword()
         );
 
-        // 비밀번호가 일치하지 않는 경우
         if (!passwordMatches) {
             throw new IllegalArgumentException(
                     "비밀번호가 올바르지 않습니다."

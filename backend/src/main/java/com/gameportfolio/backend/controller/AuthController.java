@@ -31,23 +31,13 @@ public class AuthController {
     public ResponseEntity<Map<String, String>> signup(
             @RequestBody SignupRequest request
     ) {
-        try {
-            authService.signup(request);
+        authService.signup(request);
 
-            return ResponseEntity
-                    .status(HttpStatus.CREATED)
-                    .body(Map.of(
-                            "message", "회원가입 성공!"
-                    ));
-
-        } catch (IllegalArgumentException e) {
-
-            return ResponseEntity
-                    .badRequest()
-                    .body(Map.of(
-                            "message", e.getMessage()
-                    ));
-        }
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(Map.of(
+                        "message", "회원가입 성공!"
+                ));
     }
 
     // 로그인
@@ -56,56 +46,32 @@ public class AuthController {
             @RequestBody LoginRequest request,
             HttpServletRequest httpRequest
     ) {
-        // 입력값 누락 확인
-        if (request == null
-                || request.getEmail() == null
-                || request.getEmail().isBlank()
-                || request.getPassword() == null
-                || request.getPassword().isBlank()) {
+        // 회원 인증
+        User user = authService.login(request);
 
-            return ResponseEntity
-                    .badRequest()
-                    .body(Map.of(
-                            "message", "이메일과 비밀번호를 입력해주세요."
-                    ));
+        // 기존 세션 제거
+        HttpSession oldSession =
+                httpRequest.getSession(false);
+
+        if (oldSession != null) {
+            oldSession.invalidate();
         }
 
-        try {
-            User user = authService.login(request);
+        // 새로운 로그인 세션 생성
+        HttpSession session =
+                httpRequest.getSession(true);
 
-            // 기존 세션 제거
-            HttpSession oldSession =
-                    httpRequest.getSession(false);
+        session.setAttribute(
+                "LOGIN_USER_ID",
+                user.getId()
+        );
 
-            if (oldSession != null) {
-                oldSession.invalidate();
-            }
-
-            // 새로운 로그인 세션 생성
-            HttpSession session =
-                    httpRequest.getSession(true);
-
-            session.setAttribute(
-                    "LOGIN_USER_ID",
-                    user.getId()
-            );
-
-            return ResponseEntity.ok(Map.of(
-                    "message", "로그인 성공!",
-                    "userId", user.getId(),
-                    "username", user.getUsername(),
-                    "email", user.getEmail()
-            ));
-
-        } catch (IllegalArgumentException e) {
-
-            return ResponseEntity
-                    .status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of(
-                            "message",
-                            "이메일 또는 비밀번호가 올바르지 않습니다."
-                    ));
-        }
+        return ResponseEntity.ok(Map.of(
+                "message", "로그인 성공!",
+                "userId", user.getId(),
+                "username", user.getUsername(),
+                "email", user.getEmail()
+        ));
     }
 
     // 로그아웃

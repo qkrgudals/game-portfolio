@@ -3,6 +3,8 @@ package com.gameportfolio.backend.service;
 
 import com.gameportfolio.backend.entity.Project;
 import com.gameportfolio.backend.repository.ProjectRepository;
+import com.gameportfolio.backend.exception.ProjectNotFoundException;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -31,8 +33,8 @@ public class ProjectService {
     public Project getProjectById(Long id) {
         return projectRepository.findById(id)
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
-                                "프로젝트를 찾을 수 없습니다. ID: " + id
+                        new ProjectNotFoundException(
+                                "프로젝트를 찾을 수 없습니다."
                         )
                 );
     }
