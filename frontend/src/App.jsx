@@ -7,7 +7,6 @@ import Signup from "./components/Signup";
 import MyPage from "./components/MyPage";
 
 function App() {
-  const [apiMessage, setApiMessage] = useState("연결 확인 중...");
   const [page, setPage] = useState("home");
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -18,21 +17,6 @@ function App() {
   const [rankingLoading, setRankingLoading] = useState(false);
   const [rankingError, setRankingError] = useState("");
 
-  // Spring Boot 연결 확인
-  useEffect(() => {
-    fetch("/api/test")
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("API 요청 실패");
-        }
-        return response.text();
-      })
-      .then(setApiMessage)
-      .catch((error) => {
-        console.error(error);
-        setApiMessage("Spring Boot 연결 실패");
-      });
-  }, []);
 
   // 로그인 상태 복원
   useEffect(() => {
@@ -123,30 +107,45 @@ function App() {
   };
 
   // 로그아웃
-  const handleLogout = async () => {
-    if (logoutLoading) return;
+const handleLogout = async () => {
+  if (logoutLoading) return;
 
-    setLogoutLoading(true);
+  setLogoutLoading(true);
 
-    try {
-      const response = await fetch("/api/auth/logout", {
-        method: "POST",
-        credentials: "same-origin",
-      });
+  try {
+    // CSRF 토큰 발급
+    const csrfResponse = await fetch("/api/auth/csrf", {
+      credentials: "same-origin",
+    });
 
-      if (!response.ok) {
-        throw new Error("로그아웃 실패");
-      }
-
-      setUser(null);
-      setPage("home");
-    } catch (error) {
-      console.error(error);
-      alert("로그아웃에 실패했습니다.");
-    } finally {
-      setLogoutLoading(false);
+    if (!csrfResponse.ok) {
+      throw new Error("보안 토큰 발급 실패");
     }
-  };
+
+    const { csrfToken } = await csrfResponse.json();
+
+    // 로그아웃 요청
+    const response = await fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        "X-CSRF-TOKEN": csrfToken,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("로그아웃 실패");
+    }
+
+    setUser(null);
+    setPage("home");
+  } catch (error) {
+    console.error(error);
+    alert("로그아웃에 실패했습니다.");
+  } finally {
+    setLogoutLoading(false);
+  }
+};
 
   // 회원탈퇴 성공
   const handleDeleteSuccess = () => {

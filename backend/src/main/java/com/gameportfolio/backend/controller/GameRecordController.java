@@ -3,11 +3,14 @@ package com.gameportfolio.backend.controller;
 
 import com.gameportfolio.backend.entity.GameRecord;
 import com.gameportfolio.backend.service.GameRecordService;
+import com.gameportfolio.backend.dto.RankingResponse;
+
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.gameportfolio.backend.dto.RankingResponse;
 
 import java.util.List;
 import java.util.Map;
@@ -31,11 +34,17 @@ public class GameRecordController {
     // 게임 기록 저장
     @PostMapping
     public ResponseEntity<?> saveRecord(
-            @RequestBody GameRecordRequest request,
-            HttpSession session
+            @RequestBody GameRecordRequest recordRequest,
+            HttpServletRequest request
     ) {
-        Long userId = (Long) session.getAttribute("LOGIN_USER_ID");
+        // 기존 세션만 가져오기
+        HttpSession session = request.getSession(false);
 
+        Long userId = session == null
+                ? null
+                : (Long) session.getAttribute("LOGIN_USER_ID");
+
+        // 로그인 여부 확인
         if (userId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("message", "로그인이 필요합니다."));
@@ -44,8 +53,8 @@ public class GameRecordController {
         try {
             GameRecord record = gameRecordService.saveRecord(
                     userId,
-                    request.stage(),
-                    request.clearTime()
+                    recordRequest.stage(),
+                    recordRequest.clearTime()
             );
 
             return ResponseEntity.status(HttpStatus.CREATED)
@@ -59,10 +68,17 @@ public class GameRecordController {
 
     // 로그인한 사용자의 게임 기록 조회
     @GetMapping("/me")
-    public ResponseEntity<?> getMyRecords(HttpSession session) {
+    public ResponseEntity<?> getMyRecords(
+            HttpServletRequest request
+    ) {
+        // 기존 세션만 가져오기
+        HttpSession session = request.getSession(false);
 
-        Long userId = (Long) session.getAttribute("LOGIN_USER_ID");
+        Long userId = session == null
+                ? null
+                : (Long) session.getAttribute("LOGIN_USER_ID");
 
+        // 로그인 여부 확인
         if (userId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("message", "로그인이 필요합니다."));
@@ -95,7 +111,8 @@ public class GameRecordController {
     @GetMapping("/ranking")
     public ResponseEntity<List<RankingResponse>> getRanking() {
 
-        List<RankingResponse> ranking = gameRecordService.getRanking();
+        List<RankingResponse> ranking =
+                gameRecordService.getRanking();
 
         return ResponseEntity.ok(ranking);
     }

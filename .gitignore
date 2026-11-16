@@ -32,3 +32,13 @@ application-secret.properties
 Thumbs.db
 # Unity PC 게임 빌드 파일
 /frontend/public/downloads/*.zip
+
+# Certificates / Private keys
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Local backup files
+*.bak
+*.backup

@@ -57,8 +57,11 @@ public class CsrfFilter extends OncePerRequestFilter {
 
         // 회원탈퇴 요청에 CSRF 검증 적용
         boolean protectedRequest =
-                method.equals("DELETE")
-                        && request.getServletPath().equals("/api/users/me");
+                (method.equals("DELETE")
+                        && request.getServletPath().equals("/api/users/me"))
+                        ||
+                        (method.equals("POST")
+                                && request.getServletPath().equals("/api/auth/logout"));
 
         if (stateChanging && protectedRequest) {
             HttpSession session = request.getSession(false);
